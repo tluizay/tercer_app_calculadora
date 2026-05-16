@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}Calculadora de Inflación - CalculaApps{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl w-full px-4 py-8">
+    <a href="{% url 'home' %}" class="text-green-600 dark:text-green-400 font-medium hover:underline mb-6 inline-block">
+        ← Volver al inicio
+    </a>
+
+    <h1 class="text-3xl font-black mb-6">📊 Calculadora de Inflación</h1>
+
+    <div class="flex space-x-2 p-1 bg-gray-100 dark:bg-gray-900 rounded-xl mb-8 max-w-md">
+        <button id="tab-futuro" class="w-full py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm">
+            🔮 Proyección Futura
+        </button>
+        <button id="tab-historico" class="w-full py-2.5 text-sm font-medium rounded-lg transition-all cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+            🇪🇸 Histórico España (INE)
+        </button>
+    </div>
+
+    <div id="seccion-futuro" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 h-fit space-y-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Capital Actual (€)</label>
+                <input type="number" id="capital_actual" value="10000" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Tasa Anual (%)</label>
+                <input type="number" id="tasa_inflacion" value="3.5" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Años</label>
+                <input type="number" id="anios" value="15" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <button id="btn-calcular" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all cursor-pointer shadow-md">
+                Proyectar Impacto
+            </button>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6">
+            <div id="estado-vacio" class="h-64 flex flex-col justify-center items-center text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-gray-400">
+                <span class="text-4xl mb-2">📉</span>
+                <p class="text-sm font-medium">Introduce los datos para simular la devaluación de tu dinero.</p>
+            </div>
+
+            <div id="panel-resultados" class="hidden space-y-6">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-bold">Poder de Compra Futuro</p>
+                        <p class="text-3xl font-black text-red-500 dark:text-red-400"><span id="res-poder-futuro">0</span> €</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-bold">Valor Perdido Neto</p>
+                        <p class="text-xl font-bold text-gray-700 dark:text-gray-300">-<span id="res-perdida-total">0</span> €</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+                    <div class="relative w-full h-72">
+                        <canvas id="graficoInflacion"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="seccion-historico" class="grid grid-cols-1 lg:grid-cols-12 gap-8 hidden">
+        <div class="lg:col-span-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 h-fit space-y-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Cantidad de dinero HOY (€)</label>
+                <input type="number" id="dinero_actual" value="20" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Año a comparar</label>
+                <select id="anio_destino" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100">
+                    <option value="2002">Año 2002 (Entrada del Euro)</option>
+                    <option value="2005">Año 2005</option>
+                    <option value="2010">Año 2010</option>
+                    <option value="2015">Año 2015</option>
+                    <option value="2020">Año 2020</option>
+                    <option value="2024">Año 2024</option>
+                </select>
+            </div>
+            <button id="btn-calcular-historico" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all cursor-pointer shadow-md">
+                Ver Equivalencia Real
+            </button>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6">
+            <div id="estado-vacio-historico" class="h-64 flex flex-col justify-center items-center text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-gray-400">
+                <span class="text-4xl mb-2">💶</span>
+                <p class="text-sm font-medium">Comprueba cuánto valían tus € actuales en el pasado de España.</p>
+            </div>
+
+            <div id="panel-resultados-historico" class="hidden space-y-6">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-400 font-medium">Equivale en el año elegido a:</p>
+                        <p class="text-3xl font-black text-green-600 dark:text-green-400"><span id="res-dinero-pasado">0</span> €</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400 font-medium">Pérdida de valor acumulado:</p>
+                        <p class="text-2xl font-bold text-red-500">-<span id="res-perdida-historica">0</span> €</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
+                    <div class="relative w-full h-72">
+                        <canvas id="graficoHistorico"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- CONTROL DE PESTAÑAS ---
+    const tabFuturo = document.getElementById('tab-futuro');
+    const tabHistorico = document.getElementById('tab-historico');
+    const secFuturo = document.getElementById('seccion-futuro');
+    const secHistorico = document.getElementById('seccion-historico');
+
+    tabFuturo.addEventListener('click', () => {
+        tabFuturo.className = "w-full py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm";
+        tabHistorico.className = "w-full py-2.5 text-sm font-medium rounded-lg transition-all cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
+        secFuturo.classList.remove('hidden');
+        secHistorico.classList.add('hidden');
+    });
+
+    tabHistorico.addEventListener('click', () => {
+        tabHistorico.className = "w-full py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm";
+        tabFuturo.className = "w-full py-2.5 text-sm font-medium rounded-lg transition-all cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
+        secHistorico.classList.remove('hidden');
+        secFuturo.classList.add('hidden');
+    });
+
+    // --- LLENAR DESPLEGABLE CON TODOS LOS AÑOS DESDE 2002 HASTA EL ANTERIOR AL ACTUAL ---
+    const selectAnio = document.getElementById('anio_destino');
+    const anioActualSistema = new Date().getFullYear();
+    for (let anio = 2002; anio < anioActualSistema; anio++) {
+        let opt = document.createElement('option');
+        opt.value = anio;
+        opt.innerText = anio === 2002 ? `Año 2002 (Entrada del Euro)` : `Año ${anio}`;
+        selectAnio.appendChild(opt);
+    }
+
+    // --- CÓDIGO CALCULADORA 1: PROYECCIÓN FUTURA ---
+    let chartFuturo = null;
+    document.getElementById('btn-calcular').addEventListener('click', () => {
+        const capitalActual = parseFloat(document.getElementById('capital_actual').value) || 0;
+        const tasa = (parseFloat(document.getElementById('tasa_inflacion').value) || 0) / 100;
+        const anios = parseInt(document.getElementById('anios').value) || 1;
+
+        let etiquetasX = ['Año 0'];
+        let datosY = [capitalActual];
+        let saldo = capitalActual;
+
+        for (let i = 1; i <= anios; i++) {
+            saldo = saldo / (1 + tasa);
+            etiquetasX.push(`Año ${i}`);
+            datosY.push(parseFloat(saldo.toFixed(2)));
+        }
+
+        document.getElementById('res-poder-futuro').innerText = saldo.toLocaleString('es-ES', {maximumFractionDigits:2});
+        document.getElementById('res-perdida-total').innerText = (capitalActual - saldo).toLocaleString('es-ES', {maximumFractionDigits:2});
+        document.getElementById('estado-vacio').classList.add('hidden');
+        document.getElementById('panel-resultados').classList.remove('hidden');
+
+        if (chartFuturo) chartFuturo.destroy();
+        const ctx = document.getElementById('graficoInflacion').getContext('2d');
+        chartFuturo = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: etiquetasX,
+                datasets: [{
+                    data: datosY,
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22, 163, 74, 0.08)',
+                    fill: true,
+                    tension: 0.2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    });
+
+    // --- CÓDIGO CALCULADORA 2: HISTÓRICO CON EXTRACCIÓN REAL DEL IPC (INE) ---
+    let chartHistorico = null;
+
+    document.getElementById('btn-calcular-historico').addEventListener('click', () => {
+        const dineroActual = parseFloat(document.getElementById('dinero_actual').value) || 20;
+        const anioElegido = parseInt(document.getElementById('anio_destino').value);
+
+        // Llamamos a nuestra API interna de Django
+        const urlINE = "/api/datos-ine/";
+
+        document.getElementById('res-dinero-pasado').innerText = "Calculando...";
+
+        fetch(urlINE)
+            .then(response => {
+                if (!response.ok) throw new Error("Error en la respuesta del servidor");
+                return response.json();
+            })
+            .then(resultado => {
+                let ipcAnualAcumulado = {};
+
+                // Verificación de seguridad: Comprobamos si la API devolvió datos correctos
+                if (resultado && resultado.Data) {
+                    resultado.Data.forEach(item => {
+                        if (item.Fecha && item.Valor) {
+                            const anio = parseInt(item.Fecha.split('-')[0]);
+                            if (anio >= 2002) {
+                                if (!ipcAnualAcumulado[anio]) {
+                                    ipcAnualAcumulado[anio] = { suma: 0, meses: 0 };
+                                }
+                                ipcAnualAcumulado[anio].suma += item.Valor;
+                                ipcAnualAcumulado[anio].meses += 1;
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error("Formato de datos inválido del INE");
+                }
+
+                // Calculamos las medias anuales reales del IPC
+                let ipcMedioPorAnio = {};
+                for (let anio in ipcAnualAcumulado) {
+                    ipcMedioPorAnio[anio] = ipcAnualAcumulado[anio].suma / ipcAnualAcumulado[anio].meses;
+                }
+
+                // Tomamos el año actual del sistema o el último disponible (2026)
+                const añoActualActual = new Date().getFullYear();
+                const ipcActualBase = ipcMedioPorAnio[añoActualActual] || ipcMedioPorAnio[2026] || 114.2;
+                const ipcDestino = ipcMedioPorAnio[anioElegido];
+
+                if (!ipcDestino) {
+                    alert("No se han localizado datos para el año seleccionado.");
+                    document.getElementById('res-dinero-pasado').innerText = "0.00 €";
+                    return;
+                }
+
+                // FÓRMULA DE INFLACIÓN DEFLACTADA
+                const dineroPasado = (ipcDestino / ipcActualBase) * dineroActual;
+                const perdida = dineroActual - dineroPasado;
+
+                // Inyectamos los resultados reales calculados en las etiquetas correspondientes
+                document.getElementById('res-dinero-pasado').innerText = dineroPasado.toLocaleString('es-ES', {maximumFractionDigits:2}) + " €";
+                document.getElementById('res-perdida-historica').innerText = perdida.toLocaleString('es-ES', {maximumFractionDigits:2}) + " €";
+                
+                // Intercambiamos los paneles visuales
+                document.getElementById('estado-vacio-historico').classList.add('hidden');
+                document.getElementById('panel-resultados-historico').classList.remove('hidden');
+
+                // Preparamos las etiquetas y datos para las columnas del gráfico
+                let etiquetasX = [];
+                let datosY = [];
+                const todosLosAnos = Object.keys(ipcMedioPorAnio).map(Number).sort((a,b) => a-b);
+
+                todosLosAnos.forEach(anio => {
+                    if (anio >= anioElegido && anio <= añoActualActual) {
+                        etiquetasX.push(`Año ${anio}`);
+                        const valorProporcional = (ipcMedioPorAnio[anio] / ipcActualBase) * dineroActual;
+                        datosY.push(parseFloat(valorProporcional.toFixed(2)));
+                    }
+                });
+
+                // Renderizamos el gráfico de barras interactivo de Chart.js
+                if (chartHistorico) chartHistorico.destroy();
+                const ctxH = document.getElementById('graficoHistorico').getContext('2d');
+                chartHistorico = new Chart(ctxH, {
+                    type: 'bar',
+                    data: {
+                        labels: etiquetasX,
+                        datasets: [{
+                            data: datosY,
+                            backgroundColor: '#16a34a',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Error detectado en el cálculo:", error);
+                document.getElementById('res-dinero-pasado').innerText = "Error API INE";
+                alert("Hubo un problema al procesar los datos del INE. Asegúrate de tener el contenedor corriendo y refresca con Cmd+Shift+R.");
+            });
+    });
+</script>
+{% endblock %}

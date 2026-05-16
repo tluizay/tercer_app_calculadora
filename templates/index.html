@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="max-w-4xl w-full text-center mb-16 px-4">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-6 min-h-[80px] sm:min-h-[120px]">
+            <span id="typing-text"></span><span id="cursor" class="cursor">&nbsp;</span>
+        </h1>
+        <p class="text-gray-500 text-base sm:text-lg md:text-xl font-medium max-w-xl mx-auto">
+            Selecciona la calculadora que deseas utilizar para tus proyecciones.
+        </p>
+    </div>
+
+    <div class="py-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full px-4">
+
+        <a href="{% url 'calculadora_de_inversion' %}" class="fade-in-card group bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 flex items-center justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-green-100 dark:hover:border-green-500">
+            <div class="space-y-2">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-indigo-400 transition-colors">Inversión</h2>
+                <p class="text-sm text-gray-400 dark:text-gray-400">Calcula el interés compuesto y el crecimiento de tu capital.</p>
+            </div>
+            <span class="text-5xl group-hover:scale-110 transition-transform duration-300 select-none ml-4">🌱</span>
+        </a>
+
+        <a href="{% url 'calculadora_de_inflasion' %}" class="fade-in-card group bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 flex items-center justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-green-100 dark:hover:border-green-500">
+            <div class="space-y-2">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-indigo-400 transition-colors">Inflación</h2>
+                <p class="text-sm text-gray-400 dark:text-gray-400">Analiza la pérdida de poder adquisitivo de tu dinero en el tiempo.</p>
+            </div>
+            <span class="text-5xl group-hover:scale-110 transition-transform duration-300 select-none ml-4">📊</span>
+        </a>
+
+        <a href="{% url 'calculadora_de_valor_intrinseco' %}" class="fade-in-card group bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 flex items-center justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-green-100 dark:hover:border-green-500">
+            <div class="space-y-2">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-indigo-400 transition-colors">Valor Intrínseco</h2>
+                <p class="text-sm text-gray-400 dark:text-gray-400">Calcula el valor real de una acción o un activo de negocio.</p>
+            </div>
+            <span class="text-5xl group-hover:scale-110 transition-transform duration-300 select-none ml-4">🪙</span>
+        </a>
+
+    </div>
+{% endblock %}

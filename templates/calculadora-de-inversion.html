@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Calculadora de Inversión Avanzada - CalculaApps{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="max-w-6xl w-full px-4 py-8 mx-auto">
+    <a href="{% url 'home' %}" class="text-green-600 dark:text-green-400 font-medium hover:underline mb-6 inline-block">
+        ← Volver al inicio
+    </a>
+
+    <h1 class="text-3xl font-black mb-2 text-gray-900 dark:text-white">📈 Calculadora de Inversión Avanzada</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">Simula el crecimiento de tus inversiones con interés compuesto dinámico.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        
+        <div class="lg:col-span-7 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Inversión Inicial (€)</label>
+                    <input type="number" id="initialInvestment" value="1000" min="0" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Aporte Periódico (€)</label>
+                    <input type="number" id="contribution" value="500" min="0" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Frecuencia de Aporte</label>
+                    <select id="contributionFrequency" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="365">Diario</option>
+                        <option value="52">Semanal</option>
+                        <option value="24">Quincenal</option>
+                        <option value="12" selected>Mensual</option>
+                        <option value="4">Trimestral</option>
+                        <option value="2">Semestral</option>
+                        <option value="1">Anual</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Retorno Esperado Anual (%)</label>
+                    <input type="number" id="returnRate" value="8" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Capitalización de Interés</label>
+                    <select id="capitalization" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="365">Diaria</option>
+                        <option value="24">Quincenal</option>
+                        <option value="12">Mensual</option>
+                        <option value="4">Trimestral</option>
+                        <option value="2">Semestral</option>
+                        <option value="1" selected>Anual</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Años de Crecimiento</label>
+                    <input type="number" id="years" value="25" min="1" max="100" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Modelo de Mercado</label>
+                    <select id="growthModel" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="lineal">Lineal (Constante)</option>
+                        <option value="volatil">Volátil (Simulación Real)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="panel-volatilidad-avanzada" class="hidden border-t border-dashed border-gray-200 dark:border-gray-700 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Rango de Volatilidad Máxima (%)</label>
+                    <input type="number" id="marketVolatility" value="12" min="0" max="100" step="any" class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <button type="button" id="btn-recalcular-aleatorio" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all cursor-pointer shadow-sm text-sm">
+                        🎲 Simulación Aleatoria
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 h-fit space-y-4">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Resultados</h2>
+
+            <div class="grid grid-cols-1 gap-3">
+                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 uppercase font-bold">Valor Final</p>
+                    <p class="text-2xl font-black text-green-600 dark:text-green-400" id="finalValue">€0,00</p>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 uppercase font-bold">Inversión Total</p>
+                    <p class="text-lg font-bold text-gray-800 dark:text-gray-200" id="totalInvestment">€0,00</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <p class="text-xs text-gray-400 uppercase font-bold">Capital % del Final</p>
+                        <p class="text-lg font-bold text-gray-800 dark:text-gray-200" id="capitalPercentage">0,00%</p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <p class="text-xs text-gray-400 uppercase font-bold">Aporte Total</p>
+                        <p class="text-lg font-bold text-gray-800 dark:text-gray-200" id="totalContributions">€0,00</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 uppercase font-bold">Ganancia Total</p>
+                    <p class="text-xl font-bold text-blue-600 dark:text-blue-400" id="totalProfit">€0,00</p>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 uppercase font-bold">Ganancia Porcentual</p>
+                    <p class="text-lg font-bold text-gray-800 dark:text-gray-200" id="profitPercentage">0,00%</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 p-6 mb-8">
+        <h2 class="text-xl font-black mb-1 text-gray-900 dark:text-white">📊 Proyección de Crecimiento</h2>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-6">Evolución del capital y desglose de ganancias devengadas.</p>
+        <div class="w-full relative h-[350px] sm:h-[400px]">
+            <canvas id="investmentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 p-6">
+        <h2 class="text-xl font-black mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+            📋 Desglose de Crecimiento Anual (Cálculo Compuesto Mensual)
+        </h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 text-xs font-bold uppercase text-gray-500 dark:text-gray-400">
+                        <th class="p-4 text-center">Año</th>
+                        <th class="p-4">Capital Inicial Año</th>
+                        <th class="p-4">Intereses Generados (Acum. Año)</th>
+                        <th class="p-4">Aportaciones Realizadas</th>
+                        <th class="p-4 font-bold text-green-600 dark:text-green-400">Balance Final Año</th>
+                    </tr>
+                </thead>
+                <tbody id="breakdownTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700/50 text-gray-700 dark:text-gray-300">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR'
+    }).format(value);
+}
+
+let currentVolatilitySeed = 0.15;
+let investmentChartInstance = null; // Instancia global para evitar duplicados al refrescar la gráfica
+
+function calculateInvestment() {
+    const initialInvestment = parseFloat(document.getElementById('initialInvestment').value) || 0;
+    const contribution = parseFloat(document.getElementById('contribution').value) || 0;
+    const contributionFrequency = parseInt(document.getElementById('contributionFrequency').value);
+    const returnRate = parseFloat(document.getElementById('returnRate').value) || 0;
+    const years = parseInt(document.getElementById('years').value) || 0;
+    const growthModel = document.getElementById('growthModel').value;
+    const marketVolatility = parseFloat(document.getElementById('marketVolatility').value) || 0;
+
+    const panelVolatilidad = document.getElementById('panel-volatilidad-avanzada');
+    if (growthModel === 'volatil') {
+        panelVolatilidad.classList.remove('hidden');
+    } else {
+        panelVolatilidad.classList.add('hidden');
+    }
+
+    let balance = initialInvestment;
+    let totalContributions = 0;
+    let accumulatedProfit = 0;
+    let seedBuffer = currentVolatilitySeed;
+
+    const annualRate = returnRate / 100;
+
+    const tableBody = document.getElementById('breakdownTableBody');
+    tableBody.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    // Arrays para guardar los datos que alimentarán la gráfica de Chart.js
+    const labelsYears = [];
+    const dataCapitalBase = [];
+    const dataAccumulatedProfit = [];
+    const dataYearlyProfit = [];
+
+    // BUCLE PRINCIPAL: PROCESAMOS AÑO A AÑO
+    for (let yr = 1; yr <= years; yr++) {
+        
+        const startingBalanceThisYear = balance;
+        let interestThisYear = 0;
+        let contributionsThisYear = 0;
+
+        let currentYearRate = annualRate;
+        if (growthModel === 'volatil') {
+            seedBuffer = (seedBuffer * 9301 + 49297) % 233280;
+            const rnd = seedBuffer / 233280;
+            const volatilityFactor = (rnd - 0.5) * (marketVolatility / 100);
+            currentYearRate += volatilityFactor;
+        }
+
+        const ratePerPeriod = currentYearRate / contributionFrequency;
+
+        // BUCLE INTERNO: INTERÉS COMPUESTO REAL MES A MES (O SEGÚN FRECUENCIA)
+        for (let period = 1; period <= contributionFrequency; period++) {
+            const interestOfPeriod = balance * ratePerPeriod;
+            interestThisYear += interestOfPeriod;
+            
+            balance = balance + interestOfPeriod + contribution;
+            contributionsThisYear += contribution;
+            totalContributions += contribution;
+        }
+
+        accumulatedProfit += interestThisYear;
+        const currentCapitalBase = initialInvestment + totalContributions;
+
+        // Guardamos los datos procesados en los arreglos de la gráfica
+        labelsYears.push(`Año ${yr}`);
+        dataCapitalBase.push(parseFloat(currentCapitalBase.toFixed(2)));
+        dataAccumulatedProfit.push(parseFloat(accumulatedProfit.toFixed(2)));
+        dataYearlyProfit.push(parseFloat(interestThisYear.toFixed(2)));
+
+        // CREAR FILA PARA LA TABLA ANUAL
+        const row = document.createElement('tr');
+        row.className = "hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors";
+        row.innerHTML = `
+            <td class="p-4 text-center font-bold text-gray-400 dark:text-gray-500">Año ${yr}</td>
+            <td class="p-4 font-medium">${formatCurrency(startingBalanceThisYear)}</td>
+            <td class="p-4 text-blue-600 dark:text-blue-400">+ ${formatCurrency(interestThisYear)}</td>
+            <td class="p-4 text-gray-500 dark:text-gray-400">+ ${formatCurrency(contributionsThisYear)}</td>
+            <td class="p-4 font-bold text-gray-900 dark:text-white">${formatCurrency(balance)}</td>
+        `;
+        fragment.appendChild(row);
+    }
+
+    tableBody.appendChild(fragment);
+
+    const totalInvestment = initialInvestment + totalContributions;
+    const totalProfit = balance - totalInvestment;
+
+    const capitalPercentage = balance > 0 ? (totalInvestment / balance) * 100 : 0;
+    const profitPercentage = totalInvestment > 0 ? (totalProfit / totalInvestment) * 100 : 0;
+
+    document.getElementById('finalValue').innerText = formatCurrency(balance);
+    document.getElementById('totalInvestment').innerText = formatCurrency(totalInvestment);
+    document.getElementById('capitalPercentage').innerText = capitalPercentage.toFixed(2) + '%';
+    document.getElementById('totalContributions').innerText = formatCurrency(totalContributions);
+    document.getElementById('totalProfit').innerText = formatCurrency(totalProfit);
+    document.getElementById('profitPercentage').innerText = profitPercentage.toFixed(2) + '%';
+
+    // RENDERIZAR O ACTUALIZAR LA GRÁFICA DE CHART.JS
+    renderChart(labelsYears, dataCapitalBase, dataAccumulatedProfit, dataYearlyProfit);
+}
+
+function renderChart(labels, capitalBase, accumulatedProfit, yearlyProfit) {
+    const ctx = document.getElementById('investmentChart').getContext('2d');
+    
+    // Si la gráfica ya existía, la destruimos para evitar superposiciones raras al mover los inputs
+    if (investmentChartInstance) {
+        investmentChartInstance.destroy();
+    }
+
+    // Detectamos si el navegador está usando modo oscuro leyendo las clases de Tailwind
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
+    const textColor = isDarkMode ? '#9CA3AF' : '#4B5563';
+
+    investmentChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Capital Base Acumulado',
+                    data: capitalBase,
+                    backgroundColor: '#10B981', // Verde esmeralda de Tailwind
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Ganancias Acumuladas',
+                    data: accumulatedProfit,
+                    backgroundColor: '#3B82F6', // Azul brillante
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Ganancia al Año',
+                    data: yearlyProfit,
+                    backgroundColor: '#F59E0B', // Ámbar/Naranja
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: textColor,
+                        font: { weight: '600', family: 'system-ui' },
+                        boxWidth: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.raw !== null) label += formatCurrency(context.raw);
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: textColor, font: { family: 'system-ui' } }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { 
+                        color: textColor, 
+                        font: { family: 'system-ui' },
+                        callback: function(value) { return formatCurrency(value); }
+                    }
+                }
+            }
+        }
+    });
+}
+
+document.getElementById('btn-recalcular-aleatorio').addEventListener('click', () => {
+    currentVolatilitySeed = Math.random();
+    calculateInvestment();
+});
+
+document.querySelectorAll('input, select').forEach(element => {
+    element.addEventListener('input', calculateInvestment);
+    element.addEventListener('change', calculateInvestment);
+});
+
+window.addEventListener('DOMContentLoaded', calculateInvestment);
+</script>
+{% endblock %}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mis Calculadoras Financieras{% endblock %}</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ESTILOS FORZADOS PARA MODO CLARO / OSCURO (Garantiza el funcionamiento) --- */
+        :root {
+            --bg-principal: #f9fafb; /* bg-gray-50 */
+            --texto-principal: #111827; /* text-gray-900 */
+            --bg-nav: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        html.dark {
+            --bg-principal: #030712; /* Negro absoluto / bg-gray-950 */
+            --texto-principal: #f9fafb; /* Blanco / text-gray-50 */
+            --bg-nav: #1f2937; /* bg-gray-800 */
+            --border-color: #374151; /* bg-gray-700 */
+        }
+
+        body {
+            background-color: var(--bg-principal) !important;
+            color: var(--texto-principal) !important;
+        }
+
+        nav {
+            background-color: var(--bg-nav) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        /* Fuerza al texto del logo a cambiar según el modo */
+        .logo-texto {
+            color: var(--texto-principal) !important;
+        }
+
+        /* Fuerza el cambio de color del título principal y subtítulo en modo oscuro */
+        html.dark #typing-text {
+            color: #ffffff !important;
+        }
+        html.dark .max-w-4xl p {
+            color: #9ca3af !important; /* Gris claro para el subtítulo */
+        }
+
+        /* Fuerza a las tarjetas a cambiar de color en modo oscuro */
+        html.dark .fade-in-card {
+            background-color: #111827 !important; /* bg-gray-900 */
+            border-color: #374151 !important;
+            color: #f9fafb !important;
+        }
+        html.dark .fade-in-card p {
+            color: #9ca3af !important; /* text-gray-400 */
+        }
+        html.dark .fade-in-card h2 {
+            color: #ffffff !important;
+        }
+
+        /* --- ANIMACIONES Y EFECTOS --- */
+        .fade-in-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out, background-color 0.3s, border-color 0.3s;
+        }
+        .fade-in-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Cursor parpadeante adaptado a Verde Green-600 */
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            background-color: #16a34a; /* Verde Green-600 */
+            animation: blink 0.7s infinite;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body style="font-family: 'Poppins', sans-serif;" class="min-h-screen flex flex-col transition-colors duration-300">
+
+    <nav class="w-full border-b sticky top-0 z-50 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <div class="flex items-center">
+                <a href="{% url 'home' %}" class="logo-texto text-xl font-black tracking-wider uppercase">
+                    Calcula<span class="text-green-600 dark:text-green-400">Apps</span>
+                </a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="border border-gray-200 dark:border-gray-600 p-2.5 rounded-xl bg-gray-100/50 dark:bg-gray-700 hover:scale-105 transition-all cursor-pointer text-xl select-none flex items-center justify-center w-10 h-10 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+                    <span id="theme-toggle-light-icon" class="hidden">☀️</span>
+                    <span id="theme-toggle-dark-icon">🌙</span>
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col justify-center items-center p-6 w-full">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script>
+        const htmlElement = document.documentElement;
+        
+        // 1. COMPROBACIÓN E INICIALIZACIÓN DEL TEMA (Antes de pintar la pantalla)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+            htmlElement.setAttribute('data-theme', 'dark');
+            htmlElement.style.colorScheme = 'dark';
+        } else {
+            htmlElement.classList.remove('dark');
+            htmlElement.setAttribute('data-theme', 'light');
+            htmlElement.style.colorScheme = 'light';
+        }
+
+        // 2. LOGICA CUANDO EL MENÚ YA ESTÁ CARGADO
+        window.addEventListener("DOMContentLoaded", () => {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const lightIcon = document.getElementById('theme-toggle-light-icon');
+            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+
+            // Sincronizar los iconos visuales al cargar la página
+            if (htmlElement.classList.contains('dark')) {
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+            } else {
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+            }
+
+            // Evento Click del boton de la barra de menu
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    if (htmlElement.classList.contains('dark')) {
+                        // Cambiar a modo CLARO
+                        htmlElement.classList.remove('dark');
+                        htmlElement.setAttribute('data-theme', 'light');
+                        htmlElement.style.colorScheme = 'light';
+                        localStorage.setItem('theme', 'light');
+                        
+                        lightIcon.classList.add('hidden');
+                        darkIcon.classList.remove('hidden');
+                    } else {
+                        // Cambiar a modo OSCURO
+                        htmlElement.classList.add('dark');
+                        htmlElement.setAttribute('data-theme', 'dark');
+                        htmlElement.style.colorScheme = 'dark';
+                        localStorage.setItem('theme', 'dark');
+                        
+                        lightIcon.classList.remove('hidden');
+                        darkIcon.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 3. ANIMACIÓN MECANOGRAFÍA (TYPEWRITER)
+            const typingElement = document.getElementById("typing-text");
+            const cursorElement = document.getElementById("cursor");
+            
+            if (typingElement) {
+                const textToType = "Herramientas de Inversión y Análisis";
+                let index = 0;
+
+                function typeEffect() {
+                    if (index < textToType.length) {
+                        typingElement.innerHTML += textToType.charAt(index);
+                        index++;
+                        setTimeout(typeEffect, 75);
+                    } else if (cursorElement) {
+                        setTimeout(() => { cursorElement.style.display = "none"; }, 2000);
+                    }
+                }
+                typeEffect();
+            }
+
+            // 4. ANIMACIÓN ESCALONADA DE TARJETAS
+            const cards = document.querySelectorAll('.fade-in-card');
+            if (cards.length > 0) {
+                setTimeout(() => {
+                    cards.forEach((card, index) => {
+                        setTimeout(() => { card.classList.add('visible'); }, index * 200);
+                    });
+                }, 400);
+            }
+        });
+    </script>
+    {% include 'includes/footer.html' %}
+</body>
+</html>
