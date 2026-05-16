@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-vs4pjod!p$px*2jr98*z)^xi#zim-ww^_&yr5$m_1^x6$+%x2p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['tercer-app-calculadora.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
